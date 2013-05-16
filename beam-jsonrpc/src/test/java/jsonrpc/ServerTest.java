@@ -81,6 +81,17 @@ public class ServerTest {
 
     @Test
     public void testMathService() throws Exception {
+        testResponseForRequest("{ " +
+                                       "\"jsonrpc\": \"2.0\", " +
+                                       "\"id\":15, " +
+                                       "\"method\":\"subtract\", " +
+                                       "\"params\": [17, 8]" +
+                                       "}",
+                               "{" +
+                                       "\"jsonrpc\":\"2.0\"," +
+                                       "\"id\":15," +
+                                       "\"result\":9" +
+                                       "}");
     }
 
     private void testResponseForRequest(String request, String expectedResponse) throws IOException {
