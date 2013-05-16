@@ -1,0 +1,54 @@
+<project name="beam-jaxws" default="gen-code" basedir="">
+    <property file="build.properties"/>
+    <property name="generated.src" value="beam-jaxws-client/src/main/java"/>
+    <property name="generated.wsdl" value="beam-jaxws-server/src/main/resources/org/esa/beam/ws/wsdl"/>
+    <property name="namespace" value="http://www.brockmann-consult.de/ws/beam"/>
+    <property name="classes" value="beam-jaxws-server/target/classes"/>
+
+    <target name="gen-code">
+        <antcall target="exec-wsgen">
+            <param name="portname" value="{${namespace}}BeamWebServicePort"/>
+            <param name="servicename" value="{${namespace}}BeamWebService"/>
+            <param name="classname" value="org.esa.beam.ws.server.BeamService"/>
+        </antcall>
+        <antcall target="exec-wsimport">
+            <param name="package" value="org.esa.beam.ws.client"/>
+            <param name="wsdl.location" value="${generated.wsdl}/BeamWebService.wsdl"/>
+        </antcall>
+    </target>
+
+    <target name="exec-wsgen">
+        <exec executable="${wsgen}" failonerror="true" failifexecutionfails="true">
+            <arg value="-wsdl"/>
+            <arg value="-classpath"/>
+            <arg value="${classes}"/>
+            <arg value="-r"/>
+            <arg value="${generated.wsdl}"/>
+            <!--
+                        <arg value="-s"/>
+                        <arg value="${generated.src}"/>
+            -->
+            <arg value="-d"/>
+            <arg value="${classes}"/>
+            <arg value="-servicename"/>
+            <arg value="${servicename}"/>
+            <arg value="-portname"/>
+            <arg value="${portname}"/>
+            <arg value="${classname}"/>
+        </exec>
+    </target>
+
+    <target name="exec-wsimport">
+        <exec executable="${wsimport}" failonerror="true" failifexecutionfails="true">
+            <arg value="-s"/>
+            <arg value="${generated.src}"/>
+            <arg value="-d"/>
+            <arg value="${classes}"/>
+            <arg value="-p"/>
+            <arg value="${package}"/>
+            <arg value="${wsdl.location}"/>
+        </exec>
+    </target>
+
+
+</project>
