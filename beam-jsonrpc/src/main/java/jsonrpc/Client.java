@@ -1,5 +1,6 @@
 package jsonrpc;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -48,5 +49,15 @@ public class Client<T> implements InvocationHandler {
             throw new Exception(response.error.message);
         }
         return response.result;
+    }
+
+    public void close() {
+        if (!socket.isClosed()) {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                // ok
+            }
+        }
     }
 }

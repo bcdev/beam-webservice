@@ -1,7 +1,6 @@
 package ex;
 
-import java.io.*;
-import java.net.Socket;
+import jsonrpc.Client;
 
 /**
  * @author Norman Fomferra
@@ -10,40 +9,39 @@ public class BeamClient {
 
     public static void main(String[] args) throws Exception {
 
-        Socket socket = new Socket("localhost", 31415);
+        Client<BeamService> client = new Client<BeamService>("localhost", BeamServer.PORT, BeamService.class);
+        BeamService s = client.getService();
 
-        BufferedReader socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        BufferedWriter socketWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        String[] inputs = {
+                "C:\\Users\\Norman\\BC\\EOData\\binning_L1\\MER_RR__1PPBCM20110803.N1",
+                "C:\\Users\\Norman\\BC\\EOData\\binning_L1\\MER_RR__1PPBCM20110805.N1",
+                "C:\\Users\\Norman\\BC\\EOData\\binning_L1\\MER_RR__1PPBCM20110806.N1",
+        };
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        ObjId[] productIds = new ObjId[inputs.length];
+        for (int i = 0; i < inputs.length; i++) {
+            String input = inputs[i];
+            ObjId productId = s.openProduct(input);
+            productIds[i] = productId;
+            System.out.println("productId = " + productId);
+            if (productId == null) {
+                return;
+            }
+            int w = s.getRasterWidth(productId);
+            int h = s.getRasterHeight(productId);
+            String[] bandNames = s.getBandNames(productId);
+            for (String bandName : bandNames) {
+                System.out.println("band = " + bandName);
+                float[] data = s.readPixelsFloat(productId, bandName, 0, 0, w, h);
+                System.out.println(data.length * 4 + " bytes read");
+            }
 
-        while (true) {
-            System.out.print("--> ");
-            String request = reader.readLine();
-            if (request == null) {
-                break;
-            }
-            request = request.trim();
-            if (request.isEmpty()) {
-                continue;
-            }
-            if (request.equalsIgnoreCase("exit")) {
-                break;
-            }
-            processRequest(socketReader, socketWriter, false, request);
+        }
+
+        for (ObjId productId : productIds) {
+            s.closeProduct(productId);
         }
     }
 
-    private static void processRequest(BufferedReader reader,
-                                       BufferedWriter writer,
-                                       boolean echoRequest,
-                                       String request) throws IOException {
-        if (echoRequest) {
-            System.out.println("--> " + request);
-        }
-        writer.write(request);
-        writer.flush();
-        String response = reader.readLine();
-        System.out.println("<-- " + response);
-    }
+
 }

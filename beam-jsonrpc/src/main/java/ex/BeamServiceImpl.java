@@ -1,6 +1,7 @@
 package ex;
 
 import org.esa.beam.framework.dataio.ProductIO;
+import org.esa.beam.framework.datamodel.Band;
 import org.esa.beam.framework.datamodel.Product;
 
 import java.util.HashMap;
@@ -9,11 +10,15 @@ import java.util.HashMap;
  * @author Norman Fomferra
  */
 public class BeamServiceImpl implements BeamService {
-    HashMap<ObjProxy, Object> objects;
-    long currentKey;
+    private final HashMap<ObjId, Object> objects;
+    private long lastObjKey;
+
+    public BeamServiceImpl() {
+        objects = new HashMap<ObjId, Object>(10000);
+    }
 
     @Override
-    public ObjProxy openProduct(String path) throws Exception {
+    public ObjId openProduct(String path) throws Exception {
         Product product = ProductIO.readProduct(path);
         if (product == null) {
             return null;
@@ -22,41 +27,56 @@ public class BeamServiceImpl implements BeamService {
     }
 
     @Override
-    public void closeProduct(ObjProxy productId) throws Exception {
+    public void closeProduct(ObjId productId) throws Exception {
         Product product = getObject(productId, Product.class);
         product.closeIO();
         removeObject(productId);
     }
 
     @Override
-    public String[] getBandNames(ObjProxy productId) throws Exception {
+    public int getRasterWidth(ObjId productId) throws Exception {
+        Product product = getObject(productId, Product.class);
+        return product.getSceneRasterWidth();
+    }
+
+    @Override
+    public int getRasterHeight(ObjId productId) throws Exception {
+        Product product = getObject(productId, Product.class);
+        return product.getSceneRasterHeight();
+    }
+
+    @Override
+    public String[] getBandNames(ObjId productId) throws Exception {
         Product product = getObject(productId, Product.class);
         return product.getBandNames();
     }
 
     @Override
-    public float[] readBandData(ObjProxy product, String bandName, int x, int y, int w, int h) {
-        return new float[0];
+    public float[] readPixelsFloat(ObjId productId, String bandName, int x, int y, int w, int h) throws Exception {
+        Product product = getObject(productId, Product.class);
+        Band band = product.getBand(bandName);
+        return band.readPixels(x, y, w, h, (float[]) null);
     }
 
-    private ObjProxy newObject(Object o) {
-        ObjProxy key = new ObjProxy(++currentKey);
-        objects.put(key, o);
-        return key;
+    private ObjId newObject(Object object) {
+        lastObjKey++;
+        ObjId objId = new ObjId(lastObjKey);
+        objects.put(objId, object);
+        return objId;
     }
 
-    private <T> T getObject(ObjProxy id, Class<T> productClass) {
-        Object o = objects.get(id);
-        if (o == null) {
+    private <T> T getObject(ObjId objId, Class<T> type) {
+        Object object = objects.get(objId);
+        if (object == null) {
             throw new NullPointerException();
         }
-        if (!productClass.isAssignableFrom(o.getClass())) {
+        if (!type.isAssignableFrom(object.getClass())) {
             throw new IllegalArgumentException();
         }
-        return (T) o;
+        return (T) object;
     }
 
-    private void removeObject(ObjProxy id) {
-        objects.remove(id);
+    private void removeObject(ObjId objId) {
+        objects.remove(objId);
     }
 }

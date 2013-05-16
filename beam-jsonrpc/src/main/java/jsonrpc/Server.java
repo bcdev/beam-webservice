@@ -13,7 +13,6 @@ import java.util.Map;
  */
 public abstract class Server<T> implements AutoCloseable {
 
-
     public static <T> Server<T> start(int port, Class<T> serviceInterface, T service) throws Exception {
         ServerImpl<T> server = new ServerImpl<T>(port, serviceInterface, service);
         Thread thread = new Thread(server, serviceInterface.getName() + " Server");
@@ -93,6 +92,9 @@ public abstract class Server<T> implements AutoCloseable {
                 } catch (IOException e) {
                     System.out.println("I/O error: " + e.getMessage());
                     e.printStackTrace();
+                    // since we currently only handle max. one active client,
+                    // we stop now...
+                    break;
                 }
             }
 
@@ -159,8 +161,10 @@ public abstract class Server<T> implements AutoCloseable {
                 Object result = method.invoke(service, request.params);
                 return new Response(result, request.id);
             } catch (IllegalAccessException e) {
+                e.printStackTrace(System.err);
                 return new Response(new Response.Error(2, "Method invocation error", e), request.id);
             } catch (InvocationTargetException e) {
+                e.printStackTrace(System.err);
                 return new Response(new Response.Error(2, "Method invocation error", e), request.id);
             }
         }

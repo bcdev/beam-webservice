@@ -5,24 +5,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Norman Fomferra
  */
-public class ObjProxy {
+public class ObjId {
     @JsonProperty
-    public long id;
+    public long key;
 
-    public ObjProxy(long id) {
-        this.id = id;
+    public ObjId(long key) {
+        this.key = key;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ObjProxy)) return false;
-        ObjProxy ProxyObj = (ObjProxy) o;
-        return id == ProxyObj.id;
+        if (!(o instanceof ObjId)) return false;
+        ObjId objId = (ObjId) o;
+        return key == objId.key;
     }
 
     @Override
     public int hashCode() {
-        return (int) (id ^ (id >>> 32));
+        return (int) (key ^ (key >>> 32));
     }
 }

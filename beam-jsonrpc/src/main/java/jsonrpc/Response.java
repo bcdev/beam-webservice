@@ -114,6 +114,9 @@ public class Response {
         @JsonProperty(required = false)
         public Object data;
 
+        public Error() {
+        }
+
         public Error(int code, String message, Throwable throwable) {
             this(code, message, getStackTrace(throwable));
         }

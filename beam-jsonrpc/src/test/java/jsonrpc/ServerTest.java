@@ -112,14 +112,4 @@ public class ServerTest {
         return response;
     }
 
-    public static interface MathService {
-        int subtract(int x, int y);
-    }
-
-    public static class MathServiceImpl implements MathService {
-        @Override
-        public int subtract(int x, int y) {
-            return x - y;
-        }
-    }
 }
